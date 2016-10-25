@@ -1,5 +1,7 @@
 package aima.gui.swing.framework;
 
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * In this framework a graphical agent application consists at least of three
@@ -20,13 +22,15 @@ package aima.gui.swing.framework;
  * @author Ruediger Lunde
  */
 public class SimpleAgentApp {
+	
+	private AgentAppFrame applicationFrame;
 	/**
 	 * Constructs an agent application and sets the application frame visible.
 	 */
 	public void startApplication() {
-		AgentAppFrame frame = constructApplicationFrame();
-		frame.centerPane.setDividerLocation(frame.centerPane.getResizeWeight());
-		frame.setVisible(true);
+		applicationFrame = constructApplicationFrame();
+		applicationFrame.centerPane.setDividerLocation(applicationFrame.centerPane.getResizeWeight());
+		applicationFrame.setVisible(true);
 	}
 
 	/**
@@ -72,6 +76,20 @@ public class SimpleAgentApp {
 	/** Factory method, responsible for creating the controller. */
 	public AgentAppController createController() {
 		return new DemoController();
+	}
+	
+	/**
+	 * Open window for selecting file
+	 * @param filter
+	 * @return the path of the file or null if cancelled
+	 */
+	public String getFile(FileNameExtensionFilter filter) {
+		JFileChooser chooser = new JFileChooser();
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showOpenDialog(applicationFrame);
+	    if (returnVal == JFileChooser.APPROVE_OPTION)
+	    	return chooser.getSelectedFile().getPath();
+	    return null;
 	}
 
 	// ///////////////////////////////////////////////////////////////

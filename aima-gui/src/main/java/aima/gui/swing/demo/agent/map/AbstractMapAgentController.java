@@ -53,8 +53,9 @@ public abstract class AbstractMapAgentController extends AgentAppController {
 	@Override
 	public void prepare(String changedSelectors) {
 		MapAgentFrame.SelectionState state = frame.getSelection();
-		selectScenarioAndDest(state.getIndex(MapAgentFrame.SCENARIO_SEL), state
-				.getIndex(MapAgentFrame.DESTINATION_SEL));
+		selectScenarioAndDest(state.getIndex(MapAgentFrame.SCENARIO_SEL), 
+				state.getIndex(MapAgentFrame.ORIGIN_SEL),
+				state.getIndex(MapAgentFrame.DESTINATION_SEL));
 		prepareView();
 		heuristic = createHeuristic(state.getIndex(MapAgentFrame.HEURISTIC_SEL));
 		search = SearchFactory.getInstance().createSearch(
@@ -137,7 +138,7 @@ public abstract class AbstractMapAgentController extends AgentAppController {
 	 * Primitive operation, responsible for assigning values to attributes
 	 * {@link #scenario} and {@link #destinations}.
 	 */
-	abstract protected void selectScenarioAndDest(int scenarioIdx, int destIdx);
+	abstract protected void selectScenarioAndDest(int scenarioIdx, int originIdx, int destIdx);
 
 	/**
 	 * Primitive operation, responsible for preparing the view. Scenario and

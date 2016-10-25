@@ -1,6 +1,10 @@
 package aima.gui.swing.demo.agent.map;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import aima.core.environment.map.AdaptableHeuristicFunction;
 import aima.core.environment.map.ExtendableMap;
@@ -15,6 +19,7 @@ import aima.gui.swing.framework.AgentAppEnvironmentView;
 import aima.gui.swing.framework.AgentAppFrame;
 import aima.gui.swing.framework.MessageLogger;
 import aima.gui.swing.framework.SimpleAgentApp;
+import javafx.stage.FileChooser;
 
 /**
  * Demo example of a route finding agent application with GUI. The main method
@@ -44,37 +49,56 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 	public AgentAppController createController() {
 		return new RouteFindingAgentController();
 	}
-
+	
+	public RouteFindingAgentApp() {
+		//Load australia and romania maps
+		loadedMaps = new ArrayList<>(Arrays.asList(
+				new LoadedMap(new SimplifiedRoadMapOfAustralia(), "Australia"),
+				new LoadedMap(new SimplifiedRoadMapOfPartOfRomania(), "Romania")
+				));
+	}
+	
+	/**
+	 * List of all loaded maps
+	 */
+	private List<LoadedMap> loadedMaps; 
+	
+	/**
+	 * Class to hold a map info
+	 *
+	 */
+	private static class LoadedMap {
+		public final ExtendableMap MAP;
+		public final String TITLE;
+		public LoadedMap(ExtendableMap map, String title) {
+			TITLE = title;
+			MAP = map;
+		}
+ 	}
+	
+	//ExtendableMap
 	// //////////////////////////////////////////////////////////
 	// local classes
 
 	/** Frame for a graphical route finding agent application. */
-	protected static class RouteFindingAgentFrame extends MapAgentFrame {
+	protected class RouteFindingAgentFrame extends MapAgentFrame {
 		private static final long serialVersionUID = 1L;
-
-		public static enum MapType {
-			ROMANIA, AUSTRALIA
-		};
-
-		private MapType usedMap = null;
-		private static String[] ROMANIA_DESTS = new String[] {
-				"to Bucharest", "to Eforie", "to Neamt",
-				"to Random" };
-		private static String[] AUSTRALIA_DESTS = new String[] {
-				"to Port Hedland", "to Albany", "to Melbourne",
-				"to Random" };
-
 		/** Creates a new frame. */
 		public RouteFindingAgentFrame() {
 			setTitle("RFA - the Route Finding Agent");
-			setSelectorItems(SCENARIO_SEL, new String[] {
-					"Romania, from Arad", "Romania, from Lugoj",
-					"Romania, from Fagaras",
-					"Australia, from Sydney",
-					"Australia, from Random" }, 0);
+			updateScenarioSelector();
 			setSelectorItems(Q_SEARCH_IMPL_SEL, SearchFactory.getInstance()
 					.getQSearchImplNames(), 1); // change the default!
 			setSelectorItems(HEURISTIC_SEL, new String[] { "=0", "SLD" }, 1);
+		}
+		
+		protected void updateScenarioSelector() {
+			String[] scenarios = new String[loadedMaps.size() + 1];
+			int i = 0;
+			for (LoadedMap map : loadedMaps)
+				scenarios[i++] = map.TITLE;
+			scenarios[i] = "LOAD FROM FILE";
+			setSelectorItems(SCENARIO_SEL, scenarios, 0);
 		}
 
 		/**
@@ -84,96 +108,53 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 		 */
 		@Override
 		protected void selectionChanged(String changedSelector) {
-			SelectionState state = getSelection();
-			int scenarioIdx = state.getIndex(MapAgentFrame.SCENARIO_SEL);
-			RouteFindingAgentFrame.MapType mtype = (scenarioIdx < 3) ? MapType.ROMANIA
-					: MapType.AUSTRALIA;
-			if (mtype != usedMap) {
-				usedMap = mtype;
-				String[] items = null;
-				switch (mtype) {
-				case ROMANIA:
-					items = ROMANIA_DESTS;
-					break;
-				case AUSTRALIA:
-					items = AUSTRALIA_DESTS;
-					break;
+			System.out.println("Changed: " + changedSelector);
+			if (changedSelector == null || changedSelector.equals(SCENARIO_SEL)) {
+				SelectionState state = getSelection();
+				int scenarioIdx = state.getIndex(MapAgentFrame.SCENARIO_SEL);
+				if (scenarioIdx == loadedMaps.size()) {
+					//Ask for file
+					String file = getFile(new FileNameExtensionFilter("MAP txt files", "txt"));
+					System.out.println(file);
+					updateScenarioSelector();
 				}
-				setSelectorItems(DESTINATION_SEL, items, 0);
+				else {
+					setSelectorItems(ORIGIN_SEL, loadedMaps.get(scenarioIdx).MAP.getLocations().toArray(), 0);
+					setSelectorItems(DESTINATION_SEL, loadedMaps.get(scenarioIdx).MAP.getLocations().toArray(), 0);
+				}
+				
 			}
+			else if (changedSelector.equals(ORIGIN_SEL)) {
+				SelectionState state = getSelection();
+				int scenarioIdx = state.getIndex(MapAgentFrame.ORIGIN_SEL);
+			}
+			else if (changedSelector.equals(DESTINATION_SEL)) {
+				SelectionState state = getSelection();
+				int scenarioIdx = state.getIndex(MapAgentFrame.ORIGIN_SEL);
+			}
+			
 			super.selectionChanged(changedSelector);
 		}
 	}
 
 	/** Controller for a graphical route finding agent application. */
-	protected static class RouteFindingAgentController extends
+	protected class RouteFindingAgentController extends
 			AbstractMapAgentController {
 		/**
 		 * Configures a scenario and a list of destinations. Note that for route
 		 * finding problems, the size of the list needs to be 1.
 		 */
 		@Override
-		protected void selectScenarioAndDest(int scenarioIdx, int destIdx) {
-			ExtendableMap map = new ExtendableMap();
+		protected void selectScenarioAndDest(int scenarioIdx, int originIdx, int destIdx) {
+			ExtendableMap map = loadedMaps.get(scenarioIdx).MAP;
 			MapEnvironment env = new MapEnvironment(map);
 			String agentLoc = null;
-			switch (scenarioIdx) {
-			case 0:
-				SimplifiedRoadMapOfPartOfRomania.initMap(map);
-				agentLoc = SimplifiedRoadMapOfPartOfRomania.ARAD;
-				break;
-			case 1:
-				SimplifiedRoadMapOfPartOfRomania.initMap(map);
-				agentLoc = SimplifiedRoadMapOfPartOfRomania.LUGOJ;
-				break;
-			case 2:
-				SimplifiedRoadMapOfPartOfRomania.initMap(map);
-				agentLoc = SimplifiedRoadMapOfPartOfRomania.FAGARAS;
-				break;
-			case 3:
-				SimplifiedRoadMapOfAustralia.initMap(map);
-				agentLoc = SimplifiedRoadMapOfAustralia.SYDNEY;
-				break;
-			case 4:
-				SimplifiedRoadMapOfAustralia.initMap(map);
-				agentLoc = map.randomlyGenerateDestination();
-				break;
-			}
-			scenario = new Scenario(env, map, agentLoc);
+			
+			scenario = new Scenario(env, map, map.getLocations().get(originIdx));
 
 			destinations = new ArrayList<String>();
-			if (scenarioIdx < 3) {
-				switch (destIdx) {
-				case 0:
-					destinations
-							.add(SimplifiedRoadMapOfPartOfRomania.BUCHAREST);
-					break;
-				case 1:
-					destinations.add(SimplifiedRoadMapOfPartOfRomania.EFORIE);
-					break;
-				case 2:
-					destinations.add(SimplifiedRoadMapOfPartOfRomania.NEAMT);
-					break;
-				case 3:
-					destinations.add(map.randomlyGenerateDestination());
-					break;
-				}
-			} else {
-				switch (destIdx) {
-				case 0:
-					destinations.add(SimplifiedRoadMapOfAustralia.PORT_HEDLAND);
-					break;
-				case 1:
-					destinations.add(SimplifiedRoadMapOfAustralia.ALBANY);
-					break;
-				case 2:
-					destinations.add(SimplifiedRoadMapOfAustralia.MELBOURNE);
-					break;
-				case 3:
-					destinations.add(map.randomlyGenerateDestination());
-					break;
-				}
-			}
+			destinations.add(map.getLocations().get(destIdx));
+			System.out.println("Ok..");
 		}
 
 		/**

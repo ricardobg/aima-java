@@ -64,6 +64,10 @@ public class CustomFileMap extends ExtendableMap {
 	private String mapName;
 	private String[] citiesNames;
 	
+	/**
+	 * Get the name of the loaded map
+	 * @return
+	 */
 	public String getMapName() {
 		return mapName;
 	}
@@ -84,6 +88,7 @@ public class CustomFileMap extends ExtendableMap {
 	 */
 	public static void main(String[] args) {
 		try {
+			//If you want to test locally, change the file name
 			CustomFileMap map = new CustomFileMap("/home/ricardo/Git/city_graph/test.txt");
 			System.out.println("Loaded map " + map.getMapName());
 			System.out.println("Cities:");

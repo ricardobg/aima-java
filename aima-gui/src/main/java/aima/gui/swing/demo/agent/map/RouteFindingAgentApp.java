@@ -65,8 +65,12 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 	 */
 	private List<LoadedMap> loadedMaps; 
 	
+	
+	// //////////////////////////////////////////////////////////
+	// local classes
+
 	/**
-	 * Class to hold a map info
+	 * Class to hold a map info, containing both its name and the Extendable Map
 	 *
 	 */
 	private static class LoadedMap {
@@ -77,10 +81,6 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 			MAP = map;
 		}
  	}
-	
-	//ExtendableMap
-	// //////////////////////////////////////////////////////////
-	// local classes
 
 	/** Frame for a graphical route finding agent application. */
 	protected class RouteFindingAgentFrame extends MapAgentFrame {
@@ -122,9 +122,20 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 				if (scenarioIdx == loadedMaps.size()) {
 					//Ask for file
 					String filename = getFile(new FileNameExtensionFilter("Map .txt file", "txt"));
+					if (filename == null) {
+						updateScenarioSelector();
+						return;
+					}
 					int selection = 0;
 					try {
 						CustomFileMap map = new CustomFileMap(filename);
+						//Check if name doesn't already exist
+						for (LoadedMap m : loadedMaps) 
+							if (m.TITLE.equals(map.getMapName())) {
+								showDialogMessage("There is a loaded map with the same name!");
+								updateScenarioSelector();
+								return;
+							}
 						loadedMaps.add(new LoadedMap(map, map.getMapName()));
 						updateScenarioSelector(scenarioIdx);
 						return;

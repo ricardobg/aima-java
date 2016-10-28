@@ -1,8 +1,10 @@
 package aima.gui.swing.demo.agent.map;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -93,12 +95,18 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 		}
 		
 		protected void updateScenarioSelector() {
+			updateScenarioSelector(0);
+		}
+		
+		protected void updateScenarioSelector(int selection) {
 			String[] scenarios = new String[loadedMaps.size() + 1];
 			int i = 0;
 			for (LoadedMap map : loadedMaps)
 				scenarios[i++] = map.TITLE;
-			scenarios[i] = "LOAD FROM FILE";
-			setSelectorItems(SCENARIO_SEL, scenarios, 0);
+			scenarios[i] = "Load from file...";
+			setSelectorItems(SCENARIO_SEL, scenarios, selection);
+			setDefaultSelection();
+			
 		}
 
 		/**
@@ -108,32 +116,32 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 		 */
 		@Override
 		protected void selectionChanged(String changedSelector) {
-			System.out.println("Changed: " + changedSelector);
 			if (changedSelector == null || changedSelector.equals(SCENARIO_SEL)) {
 				SelectionState state = getSelection();
 				int scenarioIdx = state.getIndex(MapAgentFrame.SCENARIO_SEL);
 				if (scenarioIdx == loadedMaps.size()) {
 					//Ask for file
-					String file = getFile(new FileNameExtensionFilter("MAP txt files", "txt"));
-					System.out.println(file);
+					String filename = getFile(new FileNameExtensionFilter("Map .txt file", "txt"));
+					int selection = 0;
+					try {
+						CustomFileMap map = new CustomFileMap(filename);
+						loadedMaps.add(new LoadedMap(map, map.getMapName()));
+						updateScenarioSelector(scenarioIdx);
+						return;
+					} catch (FileNotFoundException e) {
+						showDialogMessage("File not found!");
+					} catch (NoSuchElementException e) {
+						showDialogMessage("Invalid file!");
+					}
 					updateScenarioSelector();
 				}
 				else {
 					setSelectorItems(ORIGIN_SEL, loadedMaps.get(scenarioIdx).MAP.getLocations().toArray(), 0);
 					setSelectorItems(DESTINATION_SEL, loadedMaps.get(scenarioIdx).MAP.getLocations().toArray(), 0);
 				}
-				
 			}
-			else if (changedSelector.equals(ORIGIN_SEL)) {
-				SelectionState state = getSelection();
-				int scenarioIdx = state.getIndex(MapAgentFrame.ORIGIN_SEL);
-			}
-			else if (changedSelector.equals(DESTINATION_SEL)) {
-				SelectionState state = getSelection();
-				int scenarioIdx = state.getIndex(MapAgentFrame.ORIGIN_SEL);
-			}
-			
 			super.selectionChanged(changedSelector);
+			
 		}
 	}
 
@@ -154,7 +162,6 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 
 			destinations = new ArrayList<String>();
 			destinations.add(map.getLocations().get(destIdx));
-			System.out.println("Ok..");
 		}
 
 		/**

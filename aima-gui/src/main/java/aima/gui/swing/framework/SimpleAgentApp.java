@@ -1,6 +1,7 @@
 package aima.gui.swing.framework;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -90,6 +91,10 @@ public class SimpleAgentApp {
 	    if (returnVal == JFileChooser.APPROVE_OPTION)
 	    	return chooser.getSelectedFile().getPath();
 	    return null;
+	}
+	
+	public void showDialogMessage(String message) {
+		JOptionPane.showMessageDialog(null, message);
 	}
 
 	// ///////////////////////////////////////////////////////////////

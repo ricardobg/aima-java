@@ -1,10 +1,8 @@
 package aima.gui.swing.demo.agent.map;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.InputMismatchException;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -34,7 +32,8 @@ public class CustomFileMap extends ExtendableMap {
 		clear();
 		Scanner sc = null;
 		try {
-			sc = new Scanner(new File(filename));
+			sc = new Scanner(new File(filename), "UTF8");
+			sc.useLocale(Locale.ENGLISH);
 			mapName = sc.nextLine();
 			//Read cities
 			int nCities = sc.nextInt();

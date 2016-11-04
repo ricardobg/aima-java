@@ -21,7 +21,6 @@ import aima.gui.swing.framework.AgentAppEnvironmentView;
 import aima.gui.swing.framework.AgentAppFrame;
 import aima.gui.swing.framework.MessageLogger;
 import aima.gui.swing.framework.SimpleAgentApp;
-import javafx.stage.FileChooser;
 
 /**
  * Demo example of a route finding agent application with GUI. The main method
@@ -126,7 +125,6 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 						updateScenarioSelector();
 						return;
 					}
-					int selection = 0;
 					try {
 						CustomFileMap map = new CustomFileMap(filename);
 						//Check if name doesn't already exist
@@ -167,7 +165,6 @@ public class RouteFindingAgentApp extends SimpleAgentApp {
 		protected void selectScenarioAndDest(int scenarioIdx, int originIdx, int destIdx) {
 			ExtendableMap map = loadedMaps.get(scenarioIdx).MAP;
 			MapEnvironment env = new MapEnvironment(map);
-			String agentLoc = null;
 			
 			scenario = new Scenario(env, map, map.getLocations().get(originIdx));
 
